@@ -99,44 +99,40 @@ fastify.post('/profile', async (request, reply) => {
 
     const dbPayload = {
         user_id: safeUserId,
-        full_name: full_name || '',
-        first_name,
-        last_name,
         email: email || '',
+        full_name: full_name || '',
+        first_name: first_name || '',
+        last_name: last_name || '',
         phone: phone || '',
-        city: location || '',
+        city: location || city || '',
         linkedin_url: linkedin_url || '',
         portfolio_url: portfolio_url || '',
 
-        experience: experience || experience_summary || '',
-        experience_summary: experience_summary || experience || '',
+        experience: experience || '',
         degree: degree || '',
         major: major || '',
         university: university || '',
         graduation_year: graduation_year || '',
-        current_year: current_year || year_of_study || '',
+        year_of_study: year_of_study || current_year || '',
         gpa: gpa || '',
 
-        // Booleans
         authorized_to_work: authorized_to_work !== undefined ? !!authorized_to_work : true,
         open_to_relocation: open_to_relocation !== undefined ? !!open_to_relocation : false,
 
-        // Integers mapped safely
-        expected_stipend: parseSafeInt(expected_stipend || stipend),
-        stipend: parseSafeInt(stipend || expected_stipend),
-        year_of_study: parseSafeInt(year_of_study || current_year),
-        internship_count: parseSafeInt(internship_count),
-        availability_weeks: parseSafeInt(availability_weeks),
-
-        // Strings
+        stipend: stipend || expected_stipend || '',
         availability_type: availability_type || '',
         available_from: available_from || '',
         notice_period: notice_period || '',
         skills: skills || '',
-        preferred_domain: preferred_domain || '',
+        experience_summary: experience_summary || '',
 
         projects: projects || [],
         metadata: metadata || {},
+
+        preferred_domain: preferred_domain || '',
+        internship_count: parseInt(internship_count, 10) || null,
+        availability_weeks: parseInt(availability_weeks, 10) || null,
+
         updated_at: new Date()
     };
 
