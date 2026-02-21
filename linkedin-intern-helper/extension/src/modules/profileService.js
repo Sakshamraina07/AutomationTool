@@ -25,7 +25,10 @@ export const saveProfile = async (profileData, resumeFile) => {
             method: 'POST',
             body: JSON.stringify({
                 user_id: USER_ID,
-                ...profileData
+                ...profileData,
+                resume_base64: resumePayload ? resumePayload.data : null,
+                resume_filename: resumePayload ? resumePayload.name : null,
+                resume_content_type: resumePayload ? resumePayload.type : null
             })
         });
 
@@ -73,16 +76,20 @@ export const getProfile = async () => {
             availability_type: profileResponse.availability_type || '',
             available_from: profileResponse.available_from || '',
             notice_period: profileResponse.notice_period || '',
+            internship_count: profileResponse.internship_count || '',
+            preferred_domain: profileResponse.preferred_domain || '',
+            availability_weeks: profileResponse.availability_weeks || '',
             skills: profileResponse.skills || '',
             experience_summary: profileResponse.experience_summary || '',
             projects: profileResponse.projects || [],
             resume_filename: profileResponse.resume_filename || '',
+            resume_url: profileResponse.resume_url || '',
             metadata: profileResponse.metadata || {}
         } : {};
 
         return {
             profile: mappedProfile,
-            resume: localData.userResume || null
+            resume: localData.userResume || (profileResponse.resume_url ? { name: profileResponse.resume_filename || 'Uploaded Resume' } : null)
         };
     } catch (err) {
         console.error("[InternHelper] Database Fetch Failed, returning empty profile fallback.", err);

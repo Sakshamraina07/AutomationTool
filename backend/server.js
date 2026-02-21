@@ -43,41 +43,113 @@ fastify.get('/profile', async (request, reply) => {
 fastify.post('/profile', async (request, reply) => {
     const payload = request.body;
 
-    // Destructure base fields
+    // Destructure all possible fields requested by the frontend
     const {
-        full_name, phone, location, linkedin_url, portfolio_url, experience,
-        degree, major, university, graduation_year, year_of_study, gpa,
-        authorized_to_work, open_to_relocation, stipend, availability_type,
+        user_id, full_name, email, phone, location, linkedin_url, portfolio_url, experience,
+        degree, major, university, graduation_year, year_of_study, current_year, gpa,
+        authorized_to_work, open_to_relocation, stipend, expected_stipend, availability_type,
         available_from, notice_period, skills, experience_summary,
-        projects, resume_filename, metadata
+        projects, resume_filename, metadata,
+        internship_count, preferred_domain, availability_weeks,
+        resume_base64, resume_content_type
     } = payload;
 
+    const safeUserId = user_id || 'default-user';
     const first_name = full_name ? full_name.split(' ')[0] : '';
     const last_name = full_name ? full_name.split(' ').slice(1).join(' ') : '';
 
-    // (using .upsert below so we don't query existing here)
+    // Helper to safely parse strings like "$60/hr" to integers
+    const parseSafeInt = (val) => {
+        if (val === undefined || val === null || val === '') return null;
+        const parsed = parseInt(String(val).replace(/\D/g, ''), 10);
+        return isNaN(parsed) ? null : parsed;
+    };
+
+    // Process Resume Upload to Supabase Storage if present
+    let final_resume_url = null;
+    let final_resume_name = resume_filename || null;
+
+    if (resume_base64) {
+        try {
+            // Strip out data URI scheme if present e.g., "data:application/pdf;base64,"
+            const base64Data = resume_base64.replace(/^data:.*?;base64,/, "");
+            const buffer = Buffer.from(base64Data, 'base64');
+            const safeName = (resume_filename || 'resume.pdf').replace(/[^a-zA-Z0-9.-]/g, '_');
+            const bucketPath = `${safeUserId}/${Date.now()}_${safeName}`;
+
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('resumes')
+                .upload(bucketPath, buffer, {
+                    contentType: resume_content_type || 'application/pdf',
+                    upsert: true
+                });
+
+            if (uploadError) {
+                fastify.log.error("SUPABASE STORAGE UPLOAD ERROR: " + JSON.stringify(uploadError));
+            } else {
+                const { data: publicUrlData } = supabase.storage.from('resumes').getPublicUrl(bucketPath);
+                final_resume_url = publicUrlData.publicUrl;
+                final_resume_name = safeName;
+                fastify.log.info(`Resume successfully uploaded: ${final_resume_url}`);
+            }
+        } catch (err) {
+            fastify.log.error("Resume processing error: " + err.message);
+        }
+    }
 
     const dbPayload = {
-        first_name, last_name, phone, city: location, linkedin_url, portfolio_url,
-        experience: experience || '',
-        degree, major, university, graduation_year, year_of_study, gpa,
-        authorized_to_work: !!authorized_to_work,
-        open_to_relocation: !!open_to_relocation,
-        stipend, availability_type, available_from, notice_period,
-        skills, experience_summary, projects: projects || [],
-        resume_filename, metadata: metadata || {},
+        user_id: safeUserId,
+        full_name: full_name || '',
+        first_name,
+        last_name,
+        email: email || '',
+        phone: phone || '',
+        city: location || '',
+        linkedin_url: linkedin_url || '',
+        portfolio_url: portfolio_url || '',
+
+        experience: experience || experience_summary || '',
+        experience_summary: experience_summary || experience || '',
+        degree: degree || '',
+        major: major || '',
+        university: university || '',
+        graduation_year: graduation_year || '',
+        current_year: current_year || year_of_study || '',
+        gpa: gpa || '',
+
+        // Booleans
+        authorized_to_work: authorized_to_work !== undefined ? !!authorized_to_work : true,
+        open_to_relocation: open_to_relocation !== undefined ? !!open_to_relocation : false,
+
+        // Integers mapped safely
+        expected_stipend: parseSafeInt(expected_stipend || stipend),
+        stipend: parseSafeInt(stipend || expected_stipend),
+        year_of_study: parseSafeInt(year_of_study || current_year),
+        internship_count: parseSafeInt(internship_count),
+        availability_weeks: parseSafeInt(availability_weeks),
+
+        // Strings
+        availability_type: availability_type || '',
+        available_from: available_from || '',
+        notice_period: notice_period || '',
+        skills: skills || '',
+        preferred_domain: preferred_domain || '',
+
+        projects: projects || [],
+        metadata: metadata || {},
         updated_at: new Date()
     };
 
+    if (final_resume_url) dbPayload.resume_url = final_resume_url;
+    if (final_resume_name) dbPayload.resume_filename = final_resume_name;
+
     const { error } = await supabase
         .from('profiles')
-        .upsert({
-            user_id: 'default-user',
-            ...dbPayload
-        }, { onConflict: 'user_id' });
+        .upsert(dbPayload, { onConflict: 'user_id' });
 
     if (error) {
         fastify.log.error("SUPABASE UPSERT ERROR: " + JSON.stringify(error));
+        console.error("SUPABASE UPSERT ERROR:", error);
         return reply.status(500).send({
             success: false,
             error: error.message,
@@ -86,7 +158,8 @@ fastify.post('/profile', async (request, reply) => {
             code: error.code
         });
     }
-    return { success: true };
+
+    return { success: true, message: "Profile saved successfully." };
 });
 
 fastify.get('/applications', async (request, reply) => {

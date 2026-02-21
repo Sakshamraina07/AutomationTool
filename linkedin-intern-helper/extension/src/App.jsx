@@ -368,6 +368,20 @@ function AppContent() {
                             value={profile.notice_period || ''}
                             onChange={handleProfileChange} />
 
+                        <input name="internship_count" placeholder="Prior Internship Count (e.g., 2)"
+                            type="number"
+                            value={profile.internship_count || ''}
+                            onChange={handleProfileChange} />
+
+                        <input name="preferred_domain" placeholder="Preferred Domain (e.g., Software Engineering)"
+                            value={profile.preferred_domain || ''}
+                            onChange={handleProfileChange} />
+
+                        <input name="availability_weeks" placeholder="Availability Weeks (e.g., 12)"
+                            type="number"
+                            value={profile.availability_weeks || ''}
+                            onChange={handleProfileChange} />
+
                         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', margin: '8px 0' }}>
                             <input type="checkbox" name="authorized_to_work"
                                 checked={profile.authorized_to_work !== false}
