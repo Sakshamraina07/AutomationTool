@@ -55,11 +55,7 @@ fastify.post('/profile', async (request, reply) => {
     const first_name = full_name ? full_name.split(' ')[0] : '';
     const last_name = full_name ? full_name.split(' ').slice(1).join(' ') : '';
 
-    const { data: existing } = await supabase
-        .from('profiles')
-        .select('id')
-        .limit(1)
-        .single();
+    // (using .upsert below so we don't query existing here)
 
     const dbPayload = {
         first_name, last_name, phone, city: location, linkedin_url, portfolio_url,
@@ -73,22 +69,16 @@ fastify.post('/profile', async (request, reply) => {
         updated_at: new Date()
     };
 
-    if (existing) {
-        const { error } = await supabase
-            .from('profiles')
-            .update(dbPayload)
-            .eq('id', existing.id);
+    const { error } = await supabase
+        .from('profiles')
+        .upsert({
+            user_id: 'default-user',
+            ...dbPayload
+        }, { onConflict: 'user_id' });
 
-        if (error) fastify.log.error(error);
-    } else {
-        const { error } = await supabase
-            .from('profiles')
-            .insert([{
-                user_id: 'default-user',
-                ...dbPayload
-            }]);
-
-        if (error) fastify.log.error(error);
+    if (error) {
+        fastify.log.error(error);
+        return { success: false, error: error.message };
     }
     return { success: true };
 });
