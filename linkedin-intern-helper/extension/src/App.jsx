@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import ErrorBoundary from './components/ErrorBoundary';
-import { saveProfile as saveProfileService } from './modules/profileService';
+import { saveProfile as saveProfileService, getProfile } from './modules/profileService';
 
 const DAILY_LIMIT = 10;
 
@@ -56,23 +56,28 @@ function AppContent() {
     /* ---------------- DATA LOADERS ---------------- */
 
     const loadInitialData = async () => {
+        try {
+            console.log("[InternHelper UI] Fetching Profile from Backend on mount...");
+            const { profile, resume } = await getProfile();
+            console.log("[InternHelper UI] Profile successfully loaded:", profile);
+            setProfile(profile || {});
+
+            if (resume) {
+                setResumeStatus(`Saved: ${resume.name}`);
+            }
+        } catch (e) {
+            console.error("[InternHelper UI] Error loading profile from backend:", e);
+        }
 
         chrome.storage.local.get(
-            ['jobQueue', 'sessionState', 'userProfile', 'userResume'],
+            ['jobQueue', 'sessionState'],
             (res) => {
-
                 if (chrome.runtime.lastError) {
                     console.warn("Storage load error:", chrome.runtime.lastError);
                     return;
                 }
-
                 setQueue(res.jobQueue || []);
                 setSessionStatus(res.sessionState || {});
-                setProfile(res.userProfile || {});
-
-                if (res.userResume) {
-                    setResumeStatus(`Saved: ${res.userResume.name}`);
-                }
             }
         );
     };

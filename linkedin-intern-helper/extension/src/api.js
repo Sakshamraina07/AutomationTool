@@ -2,7 +2,7 @@
 // Central API Config for connecting Extension directly to the Render Database
 
 export const BASE_URL = "https://internhelper-backend.onrender.com";
-export const USER_ID = "user_123"; // Static User MVP Identity
+export const USER_ID = "default-user"; // Static User MVP Identity
 
 /**
  * Enhanced fetch wrapper to catch 500s or Network disconnects

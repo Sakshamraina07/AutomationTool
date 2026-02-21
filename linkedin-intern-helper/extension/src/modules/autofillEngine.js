@@ -218,8 +218,8 @@ async function tryFillInput(input, fullProfile) {
             "sponsorship": profile.work_auth === "yes" ? "no" : "yes", // Example heuristic if needed
             "notice": profile.notice_period,
             "start date": profile.notice_period,
-            "experience": profile.yoe,
-            "years": profile.yoe,
+            "experience": profile.experience || profile.yoe,
+            "years": profile.experience || profile.yoe,
             "cover letter": profile.cover_letter,
         };
 

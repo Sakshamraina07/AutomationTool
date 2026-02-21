@@ -45,13 +45,26 @@ export const saveProfile = async (profileData, resumeFile) => {
 export const getProfile = async () => {
     try {
         // Fetch Profile from DB
-        const profileResponse = await fetchApi(`/profile`);
+        console.log("[InternHelper] Fetching profile from Render API...");
+        const profileResponse = await fetchApi(`/profile?user_id=${USER_ID}`);
+        console.log("[InternHelper] API returned:", profileResponse);
 
         // Fetch Resume from Local Chrome (DB only holds text schema right now)
         const localData = await chrome.storage.local.get(['userResume']);
 
+        // Safely map Postgres columns (first_name, last_name, city) back to expected UI names (full_name, location)
+        const mappedProfile = profileResponse ? {
+            full_name: profileResponse.first_name ? `${profileResponse.first_name} ${profileResponse.last_name || ''}`.trim() : '',
+            phone: profileResponse.phone || '',
+            location: profileResponse.city || '',
+            linkedin_url: profileResponse.linkedin_url || '',
+            portfolio_url: profileResponse.portfolio_url || '',
+            experience: profileResponse.experience || '',
+            yoe: profileResponse.experience || ''
+        } : {};
+
         return {
-            profile: profileResponse || {},
+            profile: mappedProfile,
             resume: localData.userResume || null
         };
     } catch (err) {
