@@ -1,5 +1,6 @@
 import { runAutofill } from './autofillEngine.js';
 import { randomDelay } from './delayController.js';
+import { fetchApi, USER_ID } from '../api.js';
 
 const STATE = {
     OPEN_JOB: 'OPEN_JOB',
@@ -366,6 +367,23 @@ async function handleWaitingSubmit() {
             if (isSuccess) {
                 console.log("[InternHelper] Application success confirmation detected.");
                 currentState = STATE.DONE;
+
+                // --- ADD RENDER API CALL FOR SUCCESSFUL APPLICATION TRACKING ---
+                try {
+                    await fetchApi('/applications/track', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            user_id: USER_ID,
+                            job_id: window.location.href, // or parse exactly
+                            title: currentJob?.title || document.title.split('|')[0].trim(),
+                            company: currentJob?.company || "Unknown Company",
+                            status: "APPLIED"
+                        })
+                    });
+                    console.log("[InternHelper] Successfully tracked application to Render DB.");
+                } catch (apiErr) {
+                    console.error("[InternHelper] Failed to push history to Render DB:", apiErr);
+                }
             } else {
                 console.warn("[InternHelper] Modal closed but no success confirmation found. Marking FAILED.");
                 currentState = STATE.FAILED;

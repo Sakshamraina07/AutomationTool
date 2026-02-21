@@ -1,39 +1,68 @@
 // profileService.js
-// Handles persistent storage of Intern Profile and Resume
+// Handles network fetching and updating of Intern Profile and Resume via Supabase Render Backend
+
+import { fetchApi, USER_ID } from '../api.js';
 
 export const saveProfile = async (profileData, resumeFile) => {
     try {
-        const storageData = { userProfile: profileData };
+        let resumePayload = null;
 
+        // Process File handling safely for localStorage since DB only holds text
         if (resumeFile) {
             const base64Resume = await fileToBase64(resumeFile);
-            storageData.userResume = {
+            resumePayload = {
                 name: resumeFile.name,
                 type: resumeFile.type,
                 data: base64Resume,
                 lastUpdated: new Date().toISOString()
             };
+            // Resume specifically stays in local Chrome storage for now
+            await chrome.storage.local.set({ userResume: resumePayload });
         }
 
-        await chrome.storage.local.set(storageData);
-        console.log("[InternHelper] Profile Saved:", profileData);
-        return { success: true };
+        // Post Profile Data to backend
+        const response = await fetchApi('/profile', {
+            method: 'POST',
+            body: JSON.stringify({
+                user_id: USER_ID,
+                ...profileData
+            })
+        });
+
+        if (response.success) {
+            console.log("[InternHelper] Profile Successfully Pushed to Backend Database.");
+            return { success: true };
+        } else {
+            throw new Error("Backend explicitly returned failure");
+        }
+
     } catch (err) {
-        console.error("[InternHelper] Save Failed:", err);
+        console.error("[InternHelper] Database Save Failed:", err);
         return { success: false, error: err.message };
     }
 };
 
 export const getProfile = async () => {
-    const res = await chrome.storage.local.get(['userProfile', 'userResume']);
-    return {
-        profile: res.userProfile || {},
-        resume: res.userResume || null
-    };
+    try {
+        // Fetch Profile from DB
+        const profileResponse = await fetchApi(`/profile`);
+
+        // Fetch Resume from Local Chrome (DB only holds text schema right now)
+        const localData = await chrome.storage.local.get(['userResume']);
+
+        return {
+            profile: profileResponse || {},
+            resume: localData.userResume || null
+        };
+    } catch (err) {
+        console.error("[InternHelper] Database Fetch Failed, returning empty profile fallback.", err);
+        return { profile: {}, resume: null };
+    }
 };
 
 export const clearProfile = async () => {
-    await chrome.storage.local.remove(['userProfile', 'userResume']);
+    // We only clear the local resume payload here; to clear DB requires a DELETE endpoint
+    await chrome.storage.local.remove(['userResume']);
 };
 
 // Helper: Convert File to Base64
