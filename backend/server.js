@@ -46,8 +46,8 @@ fastify.post('/profile', async (request, reply) => {
     // Destructure base fields
     const {
         full_name, phone, location, linkedin_url, portfolio_url, experience,
-        degree, major, university, graduation_year, current_year, gpa,
-        work_authorized, relocation, expected_stipend, availability_type,
+        degree, major, university, graduation_year, year_of_study, gpa,
+        authorized_to_work, open_to_relocation, stipend, availability_type,
         available_from, notice_period, skills, experience_summary,
         projects, resume_filename, metadata
     } = payload;
@@ -60,10 +60,10 @@ fastify.post('/profile', async (request, reply) => {
     const dbPayload = {
         first_name, last_name, phone, city: location, linkedin_url, portfolio_url,
         experience: experience || '',
-        degree, major, university, graduation_year, current_year, gpa,
-        work_authorized: !!work_authorized,
-        relocation: !!relocation,
-        expected_stipend, availability_type, available_from, notice_period,
+        degree, major, university, graduation_year, year_of_study, gpa,
+        authorized_to_work: !!authorized_to_work,
+        open_to_relocation: !!open_to_relocation,
+        stipend, availability_type, available_from, notice_period,
         skills, experience_summary, projects: projects || [],
         resume_filename, metadata: metadata || {},
         updated_at: new Date()
@@ -77,8 +77,14 @@ fastify.post('/profile', async (request, reply) => {
         }, { onConflict: 'user_id' });
 
     if (error) {
-        fastify.log.error(error);
-        return { success: false, error: error.message };
+        fastify.log.error("SUPABASE UPSERT ERROR: " + JSON.stringify(error));
+        return reply.status(500).send({
+            success: false,
+            error: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+        });
     }
     return { success: true };
 });

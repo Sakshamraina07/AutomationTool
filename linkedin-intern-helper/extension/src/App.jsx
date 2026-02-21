@@ -348,8 +348,8 @@ function AppContent() {
                             value={profile.graduation_year || ''}
                             onChange={handleProfileChange} />
 
-                        <input name="current_year" placeholder="Current Year (e.g. Junior, Senior)"
-                            value={profile.current_year || ''}
+                        <input name="year_of_study" placeholder="Year of Study (e.g. Junior, Senior)"
+                            value={profile.year_of_study || ''}
                             onChange={handleProfileChange} />
 
                         <input name="experience_summary" placeholder="Years of Experience / Summary"
@@ -360,8 +360,8 @@ function AppContent() {
                             value={profile.skills || ''}
                             onChange={handleProfileChange} />
 
-                        <input name="expected_stipend" placeholder="Expected Stipend"
-                            value={profile.expected_stipend || ''}
+                        <input name="stipend" placeholder="Expected Stipend"
+                            value={profile.stipend || ''}
                             onChange={handleProfileChange} />
 
                         <input name="notice_period" placeholder="Notice Period / Available From"
@@ -369,16 +369,16 @@ function AppContent() {
                             onChange={handleProfileChange} />
 
                         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', margin: '8px 0' }}>
-                            <input type="checkbox" name="work_authorized"
-                                checked={profile.work_authorized !== false}
-                                onChange={(e) => setProfile(prev => ({ ...prev, work_authorized: e.target.checked }))} />
+                            <input type="checkbox" name="authorized_to_work"
+                                checked={profile.authorized_to_work !== false}
+                                onChange={(e) => setProfile(prev => ({ ...prev, authorized_to_work: e.target.checked }))} />
                             Authorized to work in country
                         </label>
 
                         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', margin: '8px 0' }}>
-                            <input type="checkbox" name="relocation"
-                                checked={profile.relocation || false}
-                                onChange={(e) => setProfile(prev => ({ ...prev, relocation: e.target.checked }))} />
+                            <input type="checkbox" name="open_to_relocation"
+                                checked={profile.open_to_relocation || false}
+                                onChange={(e) => setProfile(prev => ({ ...prev, open_to_relocation: e.target.checked }))} />
                             Open to Relocation
                         </label>
 
