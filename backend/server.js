@@ -1,42 +1,17 @@
 const fastify = require('fastify')({ logger: true });
 require('dotenv').config();
-const path = require('path');
-const fs = require('fs');
-const sqlite3 = require('sqlite3').verbose();
+const { createClient } = require('@supabase/supabase-js');
 
-// ... (db setup remains same)
+// Setup Supabase
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// Setup DB
-const dbPath = path.join(process.cwd(), 'database.sqlite');
-const db = new sqlite3.Database(dbPath);
+if (!supabaseUrl || !supabaseKey) {
+    console.warn("⚠️ SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing in .env");
+}
 
-// Helper for Async SQLite
-const dbRun = (sql, params = []) => new Promise((resolve, reject) => {
-    db.run(sql, params, function (err) {
-        if (err) reject(err);
-        else resolve(this);
-    });
-});
+const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseKey || 'placeholder');
 
-const dbGet = (sql, params = []) => new Promise((resolve, reject) => {
-    db.get(sql, params, (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-    });
-});
-
-const dbAll = (sql, params = []) => new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-    });
-});
-
-// Initialize Schema
-const schemaInit = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf-8');
-db.exec(schemaInit);
-
-// CORS
 // CORS - Allow all origins for extension compatibility
 fastify.register(require('@fastify/cors'), {
     origin: '*', // Allow all origins explicitly for extension access
@@ -45,7 +20,7 @@ fastify.register(require('@fastify/cors'), {
 
 // Routes
 fastify.get('/', async (request, reply) => {
-    return { status: 'ok', message: 'LinkedIn Intern Helper Backend Running' };
+    return { status: 'ok', message: 'LinkedIn Intern Helper Backend Running (Supabase)' };
 });
 
 fastify.get('/health', async (request, reply) => {
@@ -53,8 +28,16 @@ fastify.get('/health', async (request, reply) => {
 });
 
 fastify.get('/profile', async (request, reply) => {
-    const user = await dbGet('SELECT * FROM users LIMIT 1');
-    return user || {};
+    const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .limit(1)
+        .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = No rows returned
+        fastify.log.error(error);
+    }
+    return data || {};
 });
 
 fastify.post('/profile', async (request, reply) => {
@@ -63,42 +46,62 @@ fastify.post('/profile', async (request, reply) => {
         work_auth, relocation, notice_period, expected_stipend, common_answers
     } = request.body;
 
-    // Upsert user (Single user system for MVP)
-    const existing = await dbGet('SELECT id FROM users LIMIT 1');
+    const { data: existing } = await supabase
+        .from('users')
+        .select('id')
+        .limit(1)
+        .single();
+
     if (existing) {
-        await dbRun(`UPDATE users SET 
-            full_name=?, email=?, phone=?, location=?, linkedin_url=?, portfolio_url=?, 
-            work_auth=?, relocation=?, notice_period=?, expected_stipend=?, common_answers=? 
-            WHERE id=?`,
-            [full_name, email, phone, location, linkedin_url, portfolio_url,
+        const { error } = await supabase
+            .from('users')
+            .update({
+                full_name, email, phone, location, linkedin_url, portfolio_url,
                 work_auth, relocation, notice_period, expected_stipend,
-                JSON.stringify(common_answers || {}), existing.id]);
+                common_answers: common_answers || {}
+            })
+            .eq('id', existing.id);
+
+        if (error) fastify.log.error(error);
     } else {
-        await dbRun(`INSERT INTO users (
-            full_name, email, phone, location, linkedin_url, portfolio_url, 
-            work_auth, relocation, notice_period, expected_stipend, common_answers
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [full_name, email, phone, location, linkedin_url, portfolio_url,
+        const { error } = await supabase
+            .from('users')
+            .insert([{
+                full_name, email, phone, location, linkedin_url, portfolio_url,
                 work_auth, relocation, notice_period, expected_stipend,
-                JSON.stringify(common_answers || {})]);
+                common_answers: common_answers || {}
+            }]);
+
+        if (error) fastify.log.error(error);
     }
     return { success: true };
 });
 
 fastify.get('/applications', async (request, reply) => {
-    const apps = await dbAll('SELECT * FROM applications ORDER BY applied_at DESC');
-    return apps;
+    const { data, error } = await supabase
+        .from('applications')
+        .select('*')
+        .order('applied_at', { ascending: false });
+
+    if (error) fastify.log.error(error);
+    return data || [];
 });
 
 fastify.post('/applications/track', async (request, reply) => {
     const { job_id, company, title, location, status } = request.body;
-    try {
-        await dbRun('INSERT INTO applications (job_id, company, title, location, status) VALUES (?, ?, ?, ?, ?)',
-            [job_id, company, title, location, status || 'APPLIED']);
-        return { success: true };
-    } catch (err) {
-        return { success: false, error: 'Already tracked or error: ' + err.message };
+
+    const { error } = await supabase
+        .from('applications')
+        .insert([{
+            job_id, company, title, location, status: status || 'APPLIED'
+        }]);
+
+    if (error) {
+        fastify.log.error(error);
+        return { success: false, error: 'Already tracked or error: ' + error.message };
     }
+
+    return { success: true };
 });
 
 // Start Server
