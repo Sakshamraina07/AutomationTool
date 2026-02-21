@@ -348,8 +348,8 @@ function AppContent() {
                             value={profile.graduation_year || ''}
                             onChange={handleProfileChange} />
 
-                        <input name="year_of_study" placeholder="Year of Study (e.g. Junior, Senior)"
-                            value={profile.year_of_study || ''}
+                        <input name="current_year" placeholder="Current Year (e.g. Junior, Senior)"
+                            value={profile.current_year || ''}
                             onChange={handleProfileChange} />
 
                         <input name="experience_summary" placeholder="Years of Experience / Summary"
@@ -360,8 +360,8 @@ function AppContent() {
                             value={profile.skills || ''}
                             onChange={handleProfileChange} />
 
-                        <input name="stipend" placeholder="Expected Stipend"
-                            value={profile.stipend || ''}
+                        <input name="expected_stipend" placeholder="Expected Stipend"
+                            value={profile.expected_stipend || ''}
                             onChange={handleProfileChange} />
 
                         <input name="notice_period" placeholder="Notice Period / Available From"

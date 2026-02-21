@@ -68,11 +68,11 @@ export const getProfile = async () => {
             major: profileResponse.major || '',
             university: profileResponse.university || '',
             graduation_year: profileResponse.graduation_year || '',
-            year_of_study: profileResponse.year_of_study || profileResponse.current_year || '', // Fallback for transition
+            current_year: profileResponse.current_year || profileResponse.year_of_study || '',
             gpa: profileResponse.gpa || '',
             authorized_to_work: profileResponse.authorized_to_work ?? profileResponse.work_authorized ?? true,
             open_to_relocation: profileResponse.open_to_relocation ?? profileResponse.relocation ?? false,
-            stipend: profileResponse.stipend || profileResponse.expected_stipend || '',
+            expected_stipend: profileResponse.expected_stipend || profileResponse.stipend || '',
             availability_type: profileResponse.availability_type || '',
             available_from: profileResponse.available_from || '',
             notice_period: profileResponse.notice_period || '',

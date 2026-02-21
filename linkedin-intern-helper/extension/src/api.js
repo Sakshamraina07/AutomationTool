@@ -18,8 +18,16 @@ export const fetchApi = async (endpoint, options = {}) => {
         });
 
         if (!response.ok) {
-            console.error(`[InternHelper API] Server Error (${response.status}) on ${endpoint}`);
-            throw new Error(`Server returned ${response.status}`);
+            let errorMsg = `Server returned ${response.status}`;
+            try {
+                const errData = await response.json();
+                if (errData.error) errorMsg += `: ${errData.error}`;
+                if (errData.details) errorMsg += ` - ${errData.details}`;
+            } catch (e) {
+                // Ignore json parsing error if response is not json
+            }
+            console.error(`[InternHelper API] Server Error (${response.status}) on ${endpoint}: ${errorMsg}`);
+            throw new Error(errorMsg);
         }
 
         return await response.json();
