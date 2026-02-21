@@ -1,0 +1,17 @@
+{
+  "name": "linkedin-intern-backend",
+  "version": "1.0.0",
+  "description": "Render deployment entry point for LinkedIn Internship Assistant",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.5.0",
+    "dotenv": "^17.3.1",
+    "fastify": "^4.26.1",
+    "secure-json-parse": "^2.7.0",
+    "sqlite3": "^5.1.7"
+  }
+}

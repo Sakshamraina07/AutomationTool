@@ -1,0 +1,79 @@
+/* Panel Container */
+.ih-panel-container {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 420px;
+    background: #f8fafc;
+    z-index: 2147483647;
+    /* Max z-index */
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
+    transform: translateX(0);
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    display: flex;
+    flex-direction: column;
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    border-left: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.ih-panel-container.collapsed {
+    transform: translateX(420px);
+    box-shadow: none;
+}
+
+/* Toggle Button */
+.ih-toggle-btn {
+    position: absolute;
+    left: -50px;
+    top: 100px;
+    /* Lower it a bit */
+    width: 50px;
+    height: 50px;
+    background: white;
+    border-radius: 12px 0 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: -4px 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-right: none;
+    z-index: 2147483648;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    overflow: hidden;
+}
+
+.ih-toggle-btn:hover {
+    width: 60px;
+    left: -60px;
+    background: #f1f5f9;
+}
+
+/* Icon in toggle button */
+.ih-toggle-icon {
+    font-size: 24px;
+    color: #0a66c2;
+    /* LinkedIn Blue */
+    transition: transform 0.3s;
+}
+
+.ih-panel-container.collapsed .ih-toggle-btn {
+    background: #0a66c2;
+}
+
+.ih-panel-container.collapsed .ih-toggle-icon {
+    color: white;
+    transform: rotate(180deg);
+}
+
+
+/* Internal Content Wrapper */
+.ih-panel-content {
+    flex: 1;
+    overflow-y: auto;
+    height: 100%;
+    padding: 0;
+    /* Let App.css handle padding */
+    position: relative;
+}
