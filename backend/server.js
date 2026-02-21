@@ -29,7 +29,7 @@ fastify.get('/health', async (request, reply) => {
 
 fastify.get('/profile', async (request, reply) => {
     const { data, error } = await supabase
-        .from('users')
+        .from('profiles')
         .select('*')
         .limit(1)
         .single();
@@ -42,34 +42,33 @@ fastify.get('/profile', async (request, reply) => {
 
 fastify.post('/profile', async (request, reply) => {
     const {
-        full_name, email, phone, location, linkedin_url, portfolio_url,
-        work_auth, relocation, notice_period, expected_stipend, common_answers
+        full_name, phone, location, linkedin_url, portfolio_url, experience
     } = request.body;
 
+    const first_name = full_name ? full_name.split(' ')[0] : '';
+    const last_name = full_name ? full_name.split(' ').slice(1).join(' ') : '';
+
     const { data: existing } = await supabase
-        .from('users')
+        .from('profiles')
         .select('id')
         .limit(1)
         .single();
 
     if (existing) {
         const { error } = await supabase
-            .from('users')
+            .from('profiles')
             .update({
-                full_name, email, phone, location, linkedin_url, portfolio_url,
-                work_auth, relocation, notice_period, expected_stipend,
-                common_answers: common_answers || {}
+                first_name, last_name, phone, city: location, linkedin_url, portfolio_url, experience: experience || '', updated_at: new Date()
             })
             .eq('id', existing.id);
 
         if (error) fastify.log.error(error);
     } else {
         const { error } = await supabase
-            .from('users')
+            .from('profiles')
             .insert([{
-                full_name, email, phone, location, linkedin_url, portfolio_url,
-                work_auth, relocation, notice_period, expected_stipend,
-                common_answers: common_answers || {}
+                user_id: 'default-user',
+                first_name, last_name, phone, city: location, linkedin_url, portfolio_url, experience: experience || '', updated_at: new Date()
             }]);
 
         if (error) fastify.log.error(error);
@@ -81,7 +80,7 @@ fastify.get('/applications', async (request, reply) => {
     const { data, error } = await supabase
         .from('applications')
         .select('*')
-        .order('applied_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
     if (error) fastify.log.error(error);
     return data || [];
@@ -90,10 +89,15 @@ fastify.get('/applications', async (request, reply) => {
 fastify.post('/applications/track', async (request, reply) => {
     const { job_id, company, title, location, status } = request.body;
 
+    // Auto map job_id to job_url, and title to job_title
     const { error } = await supabase
         .from('applications')
         .insert([{
-            job_id, company, title, location, status: status || 'APPLIED'
+            user_id: 'default-user',
+            job_title: title,
+            company,
+            job_url: job_id,
+            status: status || 'APPLIED'
         }]);
 
     if (error) {
