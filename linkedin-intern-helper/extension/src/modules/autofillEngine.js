@@ -213,13 +213,35 @@ async function tryFillInput(input, fullProfile) {
             "portfolio": profile.portfolio_url,
             "website": profile.portfolio_url,
             "blog": profile.portfolio_url,
-            "authorization": profile.work_auth,
-            "legally authorized": profile.work_auth,
-            "sponsorship": profile.work_auth === "yes" ? "no" : "yes", // Example heuristic if needed
+            // Advanced Internship Mappings
+            "university": profile.university,
+            "school": profile.university,
+            "college": profile.university,
+            "degree": profile.degree,
+            "bachelor": profile.degree,
+            "master": profile.degree,
+            "major": profile.major,
+            "gpa": profile.gpa,
+            "grade": profile.gpa,
+            "graduation": profile.graduation_year,
+            "graduating": profile.graduation_year,
+            "student": profile.current_year,
+            "year": profile.current_year,
+            "authorized": profile.work_authorized ? "Yes" : "No",
+            "authorization": profile.work_authorized ? "Yes" : "No",
+            "legally": profile.work_authorized ? "Yes" : "No",
+            "require sponsorship": profile.work_authorized ? "No" : "Yes",
+            "relocate": profile.relocation ? "Yes" : "No",
+            "relocation": profile.relocation ? "Yes" : "No",
+            "stipend": profile.expected_stipend,
+            "compensation": profile.expected_stipend,
+            "salary": profile.expected_stipend,
             "notice": profile.notice_period,
             "start date": profile.notice_period,
-            "experience": profile.experience || profile.yoe,
-            "years": profile.experience || profile.yoe,
+            "available from": profile.notice_period,
+            "skills": profile.skills,
+            "experience": profile.experience || profile.experience_summary,
+            "years": profile.experience || profile.experience_summary,
             "cover letter": profile.cover_letter,
         };
 
@@ -227,8 +249,9 @@ async function tryFillInput(input, fullProfile) {
         const targetStr = `${labelText} ${name} ${id}`.toLowerCase();
 
         for (const key of checkKeys) {
-            if (targetStr.includes(key)) {
+            if (targetStr.includes(key) && profileMap[key]) {
                 value = profileMap[key];
+                console.log(`[InternHelper] keyword match: "${key}" -> injected "${value}" (Label matched: ${labelText})`);
                 break;
             }
         }

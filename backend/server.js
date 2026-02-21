@@ -41,9 +41,16 @@ fastify.get('/profile', async (request, reply) => {
 });
 
 fastify.post('/profile', async (request, reply) => {
+    const payload = request.body;
+
+    // Destructure base fields
     const {
-        full_name, phone, location, linkedin_url, portfolio_url, experience
-    } = request.body;
+        full_name, phone, location, linkedin_url, portfolio_url, experience,
+        degree, major, university, graduation_year, current_year, gpa,
+        work_authorized, relocation, expected_stipend, availability_type,
+        available_from, notice_period, skills, experience_summary,
+        projects, resume_filename, metadata
+    } = payload;
 
     const first_name = full_name ? full_name.split(' ')[0] : '';
     const last_name = full_name ? full_name.split(' ').slice(1).join(' ') : '';
@@ -54,12 +61,22 @@ fastify.post('/profile', async (request, reply) => {
         .limit(1)
         .single();
 
+    const dbPayload = {
+        first_name, last_name, phone, city: location, linkedin_url, portfolio_url,
+        experience: experience || '',
+        degree, major, university, graduation_year, current_year, gpa,
+        work_authorized: !!work_authorized,
+        relocation: !!relocation,
+        expected_stipend, availability_type, available_from, notice_period,
+        skills, experience_summary, projects: projects || [],
+        resume_filename, metadata: metadata || {},
+        updated_at: new Date()
+    };
+
     if (existing) {
         const { error } = await supabase
             .from('profiles')
-            .update({
-                first_name, last_name, phone, city: location, linkedin_url, portfolio_url, experience: experience || '', updated_at: new Date()
-            })
+            .update(dbPayload)
             .eq('id', existing.id);
 
         if (error) fastify.log.error(error);
@@ -68,7 +85,7 @@ fastify.post('/profile', async (request, reply) => {
             .from('profiles')
             .insert([{
                 user_id: 'default-user',
-                first_name, last_name, phone, city: location, linkedin_url, portfolio_url, experience: experience || '', updated_at: new Date()
+                ...dbPayload
             }]);
 
         if (error) fastify.log.error(error);

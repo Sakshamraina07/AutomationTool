@@ -305,7 +305,7 @@ function AppContent() {
                     </>
                 ) : (
 
-                    <div className="card profile-form">
+                    <div className="card profile-form" style={{ maxHeight: '400px', overflowY: 'auto' }}>
                         <h3>Intern Profile</h3>
 
                         <input name="full_name" placeholder="Full Name"
@@ -320,10 +320,75 @@ function AppContent() {
                             value={profile.phone || ''}
                             onChange={handleProfileChange} />
 
-                        <input type="file"
-                            name="_resumeFile"
-                            accept=".pdf"
+                        <input name="linkedin_url" placeholder="LinkedIn URL"
+                            value={profile.linkedin_url || ''}
                             onChange={handleProfileChange} />
+
+                        <input name="portfolio_url" placeholder="Portfolio/Website URL"
+                            value={profile.portfolio_url || ''}
+                            onChange={handleProfileChange} />
+
+                        <input name="university" placeholder="University"
+                            value={profile.university || ''}
+                            onChange={handleProfileChange} />
+
+                        <input name="degree" placeholder="Degree (e.g., B.S., M.S.)"
+                            value={profile.degree || ''}
+                            onChange={handleProfileChange} />
+
+                        <input name="major" placeholder="Major"
+                            value={profile.major || ''}
+                            onChange={handleProfileChange} />
+
+                        <input name="gpa" placeholder="GPA"
+                            value={profile.gpa || ''}
+                            onChange={handleProfileChange} />
+
+                        <input name="graduation_year" placeholder="Graduation Year"
+                            value={profile.graduation_year || ''}
+                            onChange={handleProfileChange} />
+
+                        <input name="current_year" placeholder="Current Year (e.g. Junior, Senior)"
+                            value={profile.current_year || ''}
+                            onChange={handleProfileChange} />
+
+                        <input name="experience_summary" placeholder="Years of Experience / Summary"
+                            value={profile.experience_summary || ''}
+                            onChange={handleProfileChange} />
+
+                        <input name="skills" placeholder="Skills (comma separated)"
+                            value={profile.skills || ''}
+                            onChange={handleProfileChange} />
+
+                        <input name="expected_stipend" placeholder="Expected Stipend"
+                            value={profile.expected_stipend || ''}
+                            onChange={handleProfileChange} />
+
+                        <input name="notice_period" placeholder="Notice Period / Available From"
+                            value={profile.notice_period || ''}
+                            onChange={handleProfileChange} />
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', margin: '8px 0' }}>
+                            <input type="checkbox" name="work_authorized"
+                                checked={profile.work_authorized !== false}
+                                onChange={(e) => setProfile(prev => ({ ...prev, work_authorized: e.target.checked }))} />
+                            Authorized to work in country
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', margin: '8px 0' }}>
+                            <input type="checkbox" name="relocation"
+                                checked={profile.relocation || false}
+                                onChange={(e) => setProfile(prev => ({ ...prev, relocation: e.target.checked }))} />
+                            Open to Relocation
+                        </label>
+
+                        <div style={{ marginTop: '10px' }}>
+                            <label style={{ fontSize: '12px', color: '#666' }}>Resume (PDF):</label>
+                            <input type="file"
+                                name="_resumeFile"
+                                accept=".pdf"
+                                onChange={handleProfileChange} />
+                        </div>
 
                         {resumeStatus && (
                             <p style={{ color: '#10b981' }}>

@@ -60,7 +60,24 @@ export const getProfile = async () => {
             linkedin_url: profileResponse.linkedin_url || '',
             portfolio_url: profileResponse.portfolio_url || '',
             experience: profileResponse.experience || '',
-            yoe: profileResponse.experience || ''
+            yoe: profileResponse.experience || '',
+            degree: profileResponse.degree || '',
+            major: profileResponse.major || '',
+            university: profileResponse.university || '',
+            graduation_year: profileResponse.graduation_year || '',
+            current_year: profileResponse.current_year || '',
+            gpa: profileResponse.gpa || '',
+            work_authorized: profileResponse.work_authorized ?? true,
+            relocation: profileResponse.relocation ?? false,
+            expected_stipend: profileResponse.expected_stipend || '',
+            availability_type: profileResponse.availability_type || '',
+            available_from: profileResponse.available_from || '',
+            notice_period: profileResponse.notice_period || '',
+            skills: profileResponse.skills || '',
+            experience_summary: profileResponse.experience_summary || '',
+            projects: profileResponse.projects || [],
+            resume_filename: profileResponse.resume_filename || '',
+            metadata: profileResponse.metadata || {}
         } : {};
 
         return {
