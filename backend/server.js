@@ -7,8 +7,7 @@ const sqlite3 = require('sqlite3').verbose();
 // ... (db setup remains same)
 
 // Setup DB
-const dataFolder = process.env.RENDER ? '/opt/render/project/src/backend/data' : __dirname;
-const dbPath = path.join(dataFolder, 'database.sqlite');
+const dbPath = path.join(process.cwd(), 'database.sqlite');
 const db = new sqlite3.Database(dbPath);
 
 // Helper for Async SQLite
