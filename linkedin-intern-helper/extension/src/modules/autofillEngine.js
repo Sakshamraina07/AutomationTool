@@ -389,7 +389,9 @@ function highlightSubmitButton(btn) {
         tooltip.style.whiteSpace = "nowrap";
         tooltip.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)";
         btn.parentElement.style.position = "relative";
-        btn.parentElement.appendChild(tooltip);
+        if (btn.parentElement && document.contains(btn.parentElement)) {
+            btn.parentElement.appendChild(tooltip);
+        }
     }
     tooltip.innerText = "Please review your application and Submit manually.";
 }

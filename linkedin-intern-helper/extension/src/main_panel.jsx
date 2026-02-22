@@ -17,7 +17,9 @@ function init() {
     host.style.top = '0';
     host.style.right = '0';
     host.style.zIndex = '9999999';
-    document.body.appendChild(host);
+    if (document.body && document.contains(document.body)) {
+        document.body.appendChild(host);
+    }
 
     // Create Shadow Root
     const shadow = host.attachShadow({ mode: 'open' });

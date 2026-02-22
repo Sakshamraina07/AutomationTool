@@ -20,7 +20,7 @@ function AppContent() {
     const [resumeStatus, setResumeStatus] = useState(null);
     const [view, setView] = useState('session');
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3005';
+    // API_URL removed for direct Supabase migration
 
     /* ---------------- INITIAL LOAD ---------------- */
 
@@ -140,15 +140,7 @@ function AppContent() {
                 throw new Error(result.error);
             }
 
-            const backendProfile = { ...profile };
-            delete backendProfile._resumeFile;
 
-            chrome.runtime.sendMessage({
-                type: 'PROXY_REQ',
-                endpoint: '/profile',
-                method: 'POST',
-                body: backendProfile
-            });
 
             alert("Profile Saved Successfully!");
             if (actualFile) setResumeStatus("Uploaded");
@@ -312,6 +304,10 @@ function AppContent() {
                             value={profile.full_name || ''}
                             onChange={handleProfileChange} />
 
+                        <input name="city" placeholder="City"
+                            value={profile.city || ''}
+                            onChange={handleProfileChange} />
+
                         <input name="email" placeholder="Email"
                             value={profile.email || ''}
                             onChange={handleProfileChange} />
@@ -424,13 +420,13 @@ function AppContent() {
             <footer className="footer">
                 <button
                     className="btn-link"
-                    onClick={() => window.open(`${API_URL}/applications`, '_blank')}
+                    onClick={() => window.open('https://supabase.com/dashboard/project/nhgbwprscnzhktqvfcgl', '_blank')}
                 >
                     View Dashboard ↗
                 </button>
             </footer>
 
-        </div>
+        </div >
     );
 }
 

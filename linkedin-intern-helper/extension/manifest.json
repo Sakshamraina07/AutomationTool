@@ -5,7 +5,9 @@
   "description": "Safe, user-initiated helper for LinkedIn internships.",
   "permissions": [
     "storage",
-    "tabs"
+    "tabs",
+    "scripting",
+    "activeTab"
   ],
   "host_permissions": [
     "https://www.linkedin.com/*",
@@ -21,13 +23,14 @@
   "content_scripts": [
     {
       "matches": [
-        "https://www.linkedin.com/jobs/*"
+        "https://www.linkedin.com/*"
       ],
       "js": [
         "src/content.js",
         "src/guided_apply.js"
       ],
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "all_frames": true
     },
     {
       "matches": [

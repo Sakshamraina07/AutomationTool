@@ -10,6 +10,13 @@ export default defineConfig({
     ],
     build: {
         sourcemap: true,
-        minify: false // Disable minification for easier debugging
+        minify: false, // Disable minification for easier debugging
+        rollupOptions: {
+            output: {
+                entryFileNames: `assets/[name].js`,
+                chunkFileNames: `assets/[name].js`,
+                assetFileNames: `assets/[name].[ext]`
+            }
+        }
     }
 })
