@@ -1,0 +1,283 @@
+.heisenberg-root {
+    /* Light Theme (Default) */
+    --bg: #ffffff;
+    --card: #f8fafc;
+    --header-bg: #ffffff;
+    --text-primary: #0f172a;
+    --text-muted: #64748b;
+    --accent: #2563eb;
+    /* Clean Blue */
+    --accent-hover: #1d4ed8;
+    --border: #e2e8f0;
+    --input-bg: #ffffff;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --radius: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+    .heisenberg-root {
+        --bg: #0f172a;
+        --card: #1e293b;
+        --header-bg: #0f172a;
+        --text-primary: #f8fafc;
+        --text-muted: #94a3b8;
+        --accent: #22d3ee;
+        /* Electric Cyan */
+        --accent-hover: #0891b2;
+        --border: #334155;
+        --input-bg: #1e293b;
+        --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+    }
+}
+
+.heisenberg-root .popup-container {
+    margin: 0;
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    background-color: var(--bg);
+    color: var(--text-primary);
+    width: 380px;
+    min-height: 520px;
+    overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.heisenberg-root .header {
+    padding: 24px;
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.heisenberg-root .header h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.heisenberg-root .tagline {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    display: block;
+}
+
+/* Navigation Tabs */
+.heisenberg-root .tabs {
+    display: flex;
+    padding: 0 16px;
+    gap: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.heisenberg-root .tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 16px 4px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.heisenberg-root .tab-btn:hover {
+    color: var(--text-primary);
+}
+
+.heisenberg-root .tab-btn.active {
+    color: var(--accent);
+}
+
+.heisenberg-root .tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent);
+}
+
+/* Main Content */
+.heisenberg-root .main-content {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.heisenberg-root .section-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+/* Workflow Step Cards */
+.heisenberg-root .workflow-step {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    display: flex;
+    gap: 16px;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.heisenberg-root .workflow-step:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+}
+
+.heisenberg-root .step-number {
+    width: 28px;
+    height: 28px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.heisenberg-root .step-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.heisenberg-root .step-title {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.heisenberg-root .step-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.heisenberg-root .step-desc code {
+    background: rgba(0, 0, 0, 0.05);
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--accent);
+}
+
+@media (prefers-color-scheme: dark) {
+    .heisenberg-root .step-desc code {
+        background: rgba(255, 255, 255, 0.05);
+    }
+}
+
+/* User Profile Form */
+.heisenberg-root .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.heisenberg-root .form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.heisenberg-root .form-group input {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.heisenberg-root .form-group input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+    .heisenberg-root .form-group input:focus {
+        box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1);
+    }
+}
+
+.heisenberg-root .btn-save {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    margin-top: 12px;
+}
+
+.heisenberg-root .btn-save:hover {
+    background: var(--accent-hover);
+}
+
+.heisenberg-root .btn-save:active {
+    transform: scale(0.98);
+}
+
+.heisenberg-root .btn-save.success {
+    background: #10b981;
+}
+
+/* Warning Banner */
+.heisenberg-root .warning-banner {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Footer */
+.heisenberg-root .footer {
+    padding: 24px;
+    text-align: center;
+    border-top: 1px solid var(--border);
+}
+
+.heisenberg-root .footer-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.heisenberg-root .footer-brand {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.heisenberg-root .footer-tagline {
+    font-size: 11px;
+    color: var(--text-muted);
+}
