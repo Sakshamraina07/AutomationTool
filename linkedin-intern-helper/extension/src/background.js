@@ -1,29 +1,8 @@
-// background.js - Hardened Guided Session Engine
-
-import { supabase, USER_ID } from './api.js';
-import { getFieldValue } from './modules/tieredFillService.js';
-import { saveCustomAnswer } from './modules/customAnswersService.js';
-
-let cachedProfile = null;
+// background.js - No Supabase. Local profile only (chrome.storage.local).
 
 async function getProfile() {
-    if (cachedProfile) return cachedProfile;
-
-    console.log("[InternHelper-BG] Fetching profile for caching...");
-    const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq('user_id', USER_ID)
-        .single();
-
-    if (!error && data) {
-        cachedProfile = data;
-        console.log("[InternHelper-BG] Profile cached successfully.");
-    } else {
-        console.error("[InternHelper-BG] Error caching profile:", error);
-    }
-
-    return cachedProfile;
+    const result = await chrome.storage.local.get(["userProfile"]);
+    return result.userProfile || {};
 }
 const DAILY_LIMIT = 10;
 const BATCH_SIZE = 3;
@@ -47,9 +26,26 @@ chrome.runtime.onStartup.addListener(recoverSession);
 chrome.runtime.onInstalled.addListener(recoverSession);
 
 async function recoverSession() {
+    // Legacy migration check
+    try {
+        const { internhelper_profile, internhelper_session } = await chrome.storage.local.get(['internhelper_profile', 'internhelper_session']);
+        if (internhelper_profile) {
+            await chrome.storage.local.set({ userProfile: internhelper_profile });
+            await chrome.storage.local.remove('internhelper_profile');
+            console.log("[Heisenberg-BG] Migrated legacy profile key.");
+        }
+        if (internhelper_session) {
+            await chrome.storage.local.set({ sessionState: internhelper_session });
+            await chrome.storage.local.remove('internhelper_session');
+            console.log("[Heisenberg-BG] Migrated legacy session key.");
+        }
+    } catch (e) {
+        console.warn("[Heisenberg-BG] Migration check failed:", e);
+    }
+
     const { sessionState: saved } = await chrome.storage.local.get(['sessionState']);
     if (saved?.isActive) {
-        console.log("[InternHelper-BG] Recovering previous session...");
+        console.log("[Heisenberg-BG] Recovering previous session...");
         sessionState = saved;
         openNextJob();
     }
@@ -176,7 +172,7 @@ async function openNextJob() {
         chrome.tabs.onUpdated.addListener(onTabUpdated);
 
     } catch (err) {
-        console.error("[InternHelper-BG] openNextJob error:", err);
+        console.error("[Heisenberg-BG] openNextJob error:", err);
     } finally {
         isOpeningJob = false;
     }
@@ -245,7 +241,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                         type: "START_AUTOFILL",
                         profile: profile || {}
                     });
-                    console.log("[InternHelper-BG] Sent START_AUTOFILL to tab", sender.tab.id);
+                    console.log("[Heisenberg-BG] Sent START_AUTOFILL to tab", sender.tab.id);
                 }
             });
             return true;
@@ -254,32 +250,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             (async () => {
                 try {
                     const profile = message.profile || await getProfile() || {};
-                    const fieldInfo = {
-                        labelText: message.labelText || '',
-                        placeholder: message.placeholder || '',
-                        inputType: message.inputType || 'text',
-                        options: message.options || null,
-                    };
-                    const jobContext = { jobTitle: message.jobTitle || '', companyName: message.companyName || '' };
-                    const result = await getFieldValue(profile, fieldInfo, jobContext);
-                    sendResponse(result);
+                    const label = ((message.labelText || '') + ' ' + (message.placeholder || '')).toLowerCase();
+                    const type = (message.inputType || 'text').toLowerCase();
+                    let value = null;
+                    if (type === 'tel' || label.includes('phone') || label.includes('mobile')) value = profile.phone || '';
+                    else if (type === 'email' || label.includes('email')) value = profile.email || '';
+                    else if (label.includes('name')) value = profile.full_name || '';
+                    sendResponse(value ? { value, source: 'profile' } : { value: null, source: 'profile' });
                 } catch (e) {
-                    console.warn('[InternHelper-BG] GET_FIELD_VALUE error:', e);
+                    console.warn('[Heisenberg-BG] GET_FIELD_VALUE error:', e);
                     sendResponse({ value: null, source: 'error' });
                 }
             })();
             return true;
 
         case 'SAVE_CUSTOM_ANSWER':
-            (async () => {
-                try {
-                    const ok = await saveCustomAnswer(message.questionHash, message.questionText, message.answer);
-                    sendResponse({ success: ok });
-                } catch (e) {
-                    console.warn('[InternHelper-BG] SAVE_CUSTOM_ANSWER error:', e);
-                    sendResponse({ success: false });
-                }
-            })();
+            sendResponse({ success: true });
             return true;
 
         case 'CHECK_BACKEND':
@@ -393,7 +379,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 const tabId = sender.tab?.id;
                 if (!tabId) { sendResponse({ success: false, error: 'NO_TAB' }); return; }
 
-                const profile = message.profile || {};
+                const profile = message.profile && Object.keys(message.profile).length ? message.profile : await getProfile();
 
                 // Wait up to 8s for the Easy Apply form iframe.
                 // Skip frameId=0 (parent) and /preload frames (those are just LinkedIn's search bar).
@@ -406,7 +392,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     );
                     // Log all non-root frames for debugging
                     (frames || []).forEach(f => {
-                        if (f.frameId !== 0) console.log(`[InternHelper-BG] Frame ${f.frameId}: ${f.url}`);
+                        if (f.frameId !== 0) console.log(`[Heisenberg-BG] Frame ${f.frameId}: ${f.url}`);
                     });
                     targetFrame = (frames || []).find(f =>
                         f.frameId !== 0 &&
@@ -415,17 +401,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                             f.url.includes('/apply/'))
                     );
                     if (targetFrame) break;
-                    console.log(`[InternHelper-BG] Frame scan attempt ${attempt + 1}/8 — Easy Apply frame not found yet`);
+                    console.log(`[Heisenberg-BG] Frame scan attempt ${attempt + 1}/8 — Easy Apply frame not found yet`);
                 }
 
 
                 if (!targetFrame) {
-                    console.warn('[InternHelper-BG] Easy Apply iframe not found after 6s.');
+                    console.warn('[Heisenberg-BG] Easy Apply iframe not found after 6s.');
                     sendResponse({ success: false, error: 'FRAME_NOT_FOUND' });
                     return;
                 }
 
-                console.log('[InternHelper-BG] Found Easy Apply frame:', targetFrame.url, 'frameId:', targetFrame.frameId);
+                console.log('[Heisenberg-BG] Found Easy Apply frame:', targetFrame.url, 'frameId:', targetFrame.frameId);
 
                 try {
                     await chrome.scripting.executeScript({
@@ -433,10 +419,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                         func: fillFormInFrame,
                         args: [profile]
                     });
-                    console.log('[InternHelper-BG] fillFormInFrame injected successfully.');
+                    console.log('[Heisenberg-BG] fillFormInFrame injected successfully.');
                     sendResponse({ success: true });
                 } catch (err) {
-                    console.error('[InternHelper-BG] executeScript failed:', err);
+                    console.error('[Heisenberg-BG] executeScript failed:', err);
                     sendResponse({ success: false, error: err.message });
                 }
             })();
@@ -449,7 +435,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // It must be self-contained — no closures, no imports, no external references.
 
 function fillFormInFrame(profile) {
-    console.log('[InternHelper-FRAME] fillFormInFrame running in frame:', window.location.href);
+    console.log('[Heisenberg-FRAME] fillFormInFrame running in frame:', window.location.href);
 
     const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
     const nativeTextareaSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
@@ -476,29 +462,29 @@ function fillFormInFrame(profile) {
         const label = getLabelText(el);
         const type = el.type?.toLowerCase();
         const ph = (el.placeholder || '').toLowerCase();
+        const full = (profile.full_name || '').trim();
+        const parts = full ? full.split(/\s+/) : [];
+        const first = parts[0] || '';
+        const last = parts.slice(1).join(' ') || '';
 
         if (type === 'tel' || label.includes('phone') || label.includes('mobile') || ph.includes('phone'))
-            return profile.phone_number || profile.phone || '';
+            return profile.phone || '';
         if (label.includes('first name') || ph.includes('first name'))
-            return profile.first_name || '';
+            return first;
         if (label.includes('last name') || ph.includes('last name'))
-            return profile.last_name || '';
+            return last;
         if (label.includes('email') || type === 'email')
             return profile.email || '';
-        if (label.includes('linkedin') || ph.includes('linkedin'))
-            return profile.linkedin_url || '';
-        if (label.includes('city') || label.includes('location'))
-            return profile.city || profile.location || '';
-        if (label.includes('year') || label.includes('experience') || label.includes('gpa'))
-            return profile.years_of_experience?.toString() || '';
-        return null; // unknown field
+        if (label.includes('name') || ph.includes('name'))
+            return full || first || last || '';
+        return null;
     }
 
     const allInputs = [...document.querySelectorAll("input:not([type='hidden']), textarea, select")]
         .filter(el => !el.disabled && el.offsetParent !== null);
 
-    console.log('[InternHelper-FRAME] Visible inputs in frame:', allInputs.length);
-    allInputs.forEach(el => console.log('[InternHelper-FRAME] Input:', el.type, el.name, el.id, el.placeholder));
+    console.log('[Heisenberg-FRAME] Visible inputs in frame:', allInputs.length);
+    allInputs.forEach(el => console.log('[Heisenberg-FRAME] Input:', el.type, el.name, el.id, el.placeholder));
 
     let filled = 0;
 
@@ -520,9 +506,8 @@ function fillFormInFrame(profile) {
 
         if (tag === 'textarea') {
             if (el.value && el.value.trim() !== '') continue;
-            const mapped = mapFieldValue(el, profile) || (profile.summary || 'N/A');
-            triggerReact(el, mapped, true);
-            filled++;
+            const mapped = mapFieldValue(el, profile);
+            if (mapped) { triggerReact(el, mapped, true); filled++; }
             continue;
         }
 
@@ -533,11 +518,11 @@ function fillFormInFrame(profile) {
             triggerReact(el, mapped);
             el.dataset.ihFrameFilled = 'true';
             filled++;
-            console.log('[InternHelper-FRAME] Filled:', getLabelText(el), '→', mapped);
+            console.log('[Heisenberg-FRAME] Filled:', getLabelText(el), '→', mapped);
         }
     }
 
-    console.log('[InternHelper-FRAME] Fields filled:', filled);
+    console.log('[Heisenberg-FRAME] Fields filled:', filled);
 
     // Click Next/Review/Submit if all visible inputs are filled
     setTimeout(() => {
@@ -549,10 +534,10 @@ function fillFormInFrame(profile) {
                 aria.includes('next') || aria.includes('review') || aria.includes('submit');
         });
         if (btn) {
-            console.log('[InternHelper-FRAME] Clicking:', btn.innerText.trim());
+            console.log('[Heisenberg-FRAME] Clicking:', btn.innerText.trim());
             btn.click();
         } else {
-            console.log('[InternHelper-FRAME] No Next/Review/Submit button found yet.');
+            console.log('[Heisenberg-FRAME] No Next/Review/Submit button found yet.');
         }
     }, 800);
 }

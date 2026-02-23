@@ -22,7 +22,7 @@ let processedJobIds = new Set();
 export async function runGuidedSession() {
     if (currentState !== STATE.IDLE) return;
 
-    console.log("[InternHelper] Starting State Machine Engine...");
+    console.log("[Heisenberg.ai] Starting State Machine Engine...");
     currentState = STATE.SCANNING;
 
     const safety = checkSafety();
@@ -37,12 +37,12 @@ export async function runGuidedSession() {
     try {
         await mainLoop();
     } catch (e) {
-        console.error("[InternHelper] Engine Crash:", e);
+        console.error("[Heisenberg.ai] Engine Crash:", e);
         alert("Engine Stopped due to error. Check console.");
     } finally {
         stopInactivityMonitor();
         currentState = STATE.IDLE;
-        console.log("[InternHelper] Session Ended.");
+        console.log("[Heisenberg.ai] Session Ended.");
     }
 }
 
@@ -102,7 +102,7 @@ async function processCards(cards) {
         // 4. Validate Details (Strict Easy Apply Check)
         const validation = await validateJobPage();
         if (!validation.valid) {
-            console.log(`[InternHelper] Skipping (Validation): ${validation.reason}`);
+            console.log(`[Heisenberg.ai] Skipping (Validation): ${validation.reason}`);
             chrome.runtime.sendMessage({ type: 'SKIP_JOB', reason: validation.reason });
             continue;
         }

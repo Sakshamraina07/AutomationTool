@@ -1,0 +1,22 @@
+---
+description: At end of extension work, rebuild and provide downloadable zip path and shareable-link instructions
+globs: linkedin-intern-helper/extension/**/*
+alwaysApply: false
+---
+
+# LinkedIn Intern Helper — End-of-Chat Deliverable
+
+When finishing work on the **LinkedIn Intern Helper** extension (`linkedin-intern-helper/extension`), always:
+
+1. **Rebuild** the extension:
+   - From repo root: `Set-Location "d:\AutomationTool\linkedin-intern-helper\extension"; npm run build`
+
+2. **Create the zip** for download:
+   - `Compress-Archive -Path "d:\AutomationTool\linkedin-intern-helper\extension\dist\*" -DestinationPath "d:\AutomationTool\linkedin-intern-helper\extension\LinkedIn-Intern-Helper-Extension.zip" -Force`
+
+3. **Tell the user**:
+   - **Local zip path**: `d:\AutomationTool\linkedin-intern-helper\extension\LinkedIn-Intern-Helper-Extension.zip`
+   - **Shareable link**: The zip is local only; to get a downloadable link they can upload it to Google Drive / OneDrive / Dropbox and share the link.
+   - **Install**: Unzip → Chrome → Extensions → Developer mode → Load unpacked → select the unzipped folder.
+
+Do this at the **end of every chat** where the extension was modified or discussed.

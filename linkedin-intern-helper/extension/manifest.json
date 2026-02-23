@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "LinkedIn Internship Helper",
+  "name": "Heisenberg.ai",
   "version": "1.0.0",
-  "description": "Safe, user-initiated helper for LinkedIn internships.",
+  "description": "Safe, user-initiated auto-apply for LinkedIn internships.",
   "permissions": [
     "storage",
     "tabs",
@@ -30,7 +30,8 @@
         "src/guided_apply.js"
       ],
       "run_at": "document_idle",
-      "all_frames": true
+      "all_frames": true,
+      "css": []
     },
     {
       "matches": [

@@ -1,17 +1,17 @@
-import './content_style.css';
+// Popup CSS is strictly isolated. Removed global import.
 
 // ============================================================
 // No URL or iframe blocking. Single init per frame.
 // ============================================================
 
-console.log("[InternHelper] Content script loaded (Ultra Stable)");
+console.log("[Heisenberg.ai] Content script loaded (Ultra Stable)");
 
 const SELECTORS = {
   DETAILS_CONTAINER: '.jobs-search__job-details--container, .job-view-layout, .jobs-search-two-pane__details',
   ACTIONS_BAR: '.jobs-unified-top-card__actions-container, .jobs-s-apply',
   MODAL: '.jobs-easy-apply-modal',
   MODAL_HEADER: '.artdeco-modal__header',
-  BUTTON_ID: 'internhelper-queue-btn'
+  BUTTON_ID: 'heisenberg-queue-btn'
 };
 
 const State = {
@@ -56,7 +56,7 @@ function injectQueueButton(actionsBar) {
 
   if (actionsBar && document.contains(actionsBar)) {
     actionsBar.appendChild(btn);
-    console.log("[InternHelper] Queue button injected");
+    console.log("[Heisenberg.ai] Queue button injected");
   }
 }
 
@@ -142,13 +142,13 @@ function setupModalObserver(modalNode) {
   State.modalObserver?.disconnect();
 
   const injectSmartApply = () => {
-    if (modalNode.querySelector('#ih-smart-apply')) return;
+    if (modalNode.querySelector('#h-smart-apply')) return;
 
     const header = modalNode.querySelector(SELECTORS.MODAL_HEADER);
     if (!header) return;
 
     const btn = document.createElement('button');
-    btn.id = 'ih-smart-apply';
+    btn.id = 'h-smart-apply';
     btn.textContent = "⚡ Smart Apply";
     btn.style.cssText = `
             margin-left:auto;
@@ -225,7 +225,7 @@ function setupTitleWatcher() {
   const observer = new MutationObserver(() => {
     if (location.href !== State.lastUrl) {
       State.lastUrl = location.href;
-      console.log("[InternHelper] Navigation detected");
+      console.log("[Heisenberg.ai] Navigation detected");
 
       disconnectObservers();
       setupGlobalWatcher();
@@ -238,8 +238,8 @@ function setupTitleWatcher() {
 // ---------------- INIT (once per frame) ----------------
 
 function init() {
-  if (typeof window !== "undefined" && window.__internHelperContentInit) return;
-  window.__internHelperContentInit = true;
+  if (typeof window !== "undefined" && window.__heisenbergContentInit) return;
+  window.__heisenbergContentInit = true;
   setupGlobalWatcher();
   setupTitleWatcher();
 }

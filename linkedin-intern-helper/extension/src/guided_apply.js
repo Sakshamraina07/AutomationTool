@@ -226,19 +226,19 @@
 
   function getValueForField(field, labelText) {
     const type = (field.type || "").toLowerCase();
-    const tag = (field.tagName || "").toLowerCase();
-    if (type === "tel" || (labelText && (labelText.includes("phone") || labelText.includes("mobile") || labelText.includes("contact")))) {
-      const phone = profile.phone || profile.phone_number;
-      if (phone && String(phone).trim()) return String(phone).trim();
-      return "9" + String(Math.floor(Math.random() * 1000000000)).padStart(9, "0");
-    }
-    if (type === "email" || (labelText && labelText.includes("email"))) return profile.email || "";
-    if (labelText && labelText.includes("first name")) return profile.first_name || "";
-    if (labelText && labelText.includes("last name")) return profile.last_name || "";
-    if (labelText && (labelText.includes("city") || labelText.includes("location"))) return profile.city || profile.location || "";
-    if (labelText && labelText.includes("linkedin")) return profile.linkedin_url || "";
-    if (labelText && (labelText.includes("experience") || labelText.includes("years"))) return profile.years_of_experience != null ? String(profile.years_of_experience) : "";
-    if (labelText && (labelText.includes("salary") || labelText.includes("stipend") || labelText.includes("ctc"))) return profile.expected_stipend != null ? String(profile.expected_stipend) : "";
+    const label = (labelText || "").toLowerCase();
+    const full = (profile.full_name || "").trim();
+    const parts = full ? full.split(/\s+/) : [];
+    const first = parts[0] || "";
+    const last = parts.slice(1).join(" ") || "";
+
+    if (type === "tel" || label.includes("phone") || label.includes("mobile") || label.includes("contact"))
+      return (profile.phone && String(profile.phone).trim()) ? String(profile.phone).trim() : "";
+    if (type === "email" || label.includes("email"))
+      return (profile.email && String(profile.email).trim()) ? String(profile.email).trim() : "";
+    if (label.includes("first name")) return first;
+    if (label.includes("last name")) return last;
+    if (label.includes("name")) return full || first || last || "";
     return "";
   }
 
