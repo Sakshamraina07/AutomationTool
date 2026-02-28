@@ -1,4 +1,6 @@
-// background.js - No Supabase. Local profile only (chrome.storage.local).
+// background.js - No Supabase. Local profile only (chrome.storage.local) + optional Ollama helper.
+
+import { askOllama } from "./modules/ollamaClient.js";
 
 async function getProfile() {
     const result = await chrome.storage.local.get(["userProfile"]);
@@ -264,6 +266,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             })();
             return true;
 
+        case 'ASK_OLLAMA':
+            (async () => {
+                try {
+                    const answer = await askOllama(
+                        message.questionText || "",
+                        message.jobDescription || "General Internship",
+                        Array.isArray(message.options) ? message.options : null
+                    );
+                    sendResponse({ success: true, answer });
+                } catch (e) {
+                    console.warn('[Heisenberg-BG] ASK_OLLAMA error:', e);
+                    sendResponse({ success: false, answer: "" });
+                }
+            })();
+            return true;
+
         case 'SAVE_CUSTOM_ANSWER':
             sendResponse({ success: true });
             return true;
@@ -442,7 +460,12 @@ function fillFormInFrame(profile) {
 
     function triggerReact(el, value, isTextarea = false) {
         const setter = isTextarea ? nativeTextareaSetter : nativeSetter;
-        setter.call(el, value);
+        const strValue = value == null ? '' : String(value);
+        try {
+            setter.call(el, strValue);
+        } catch (e) {
+            el.value = strValue;
+        }
         el.dispatchEvent(new Event('input', { bubbles: true }));
         el.dispatchEvent(new Event('change', { bubbles: true }));
         el.dispatchEvent(new Event('blur', { bubbles: true }));

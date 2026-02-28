@@ -7,11 +7,15 @@
     "storage",
     "tabs",
     "scripting",
-    "activeTab"
+    "activeTab",
+    "webNavigation"
   ],
   "host_permissions": [
     "https://www.linkedin.com/*",
-    "http://127.0.0.1:3005/*"
+    "https://*.lever.co/*",
+    "https://lever.co/*",
+    "http://127.0.0.1:3005/*",
+    "http://localhost:11434/*"
   ],
   "action": {
     "default_popup": "index.html"
@@ -26,8 +30,7 @@
         "https://www.linkedin.com/*"
       ],
       "js": [
-        "src/content.js",
-        "src/guided_apply.js"
+        "src/content.js"
       ],
       "run_at": "document_idle",
       "all_frames": true,
@@ -38,9 +41,30 @@
         "https://www.linkedin.com/*"
       ],
       "js": [
+        "src/guided_apply.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
+    },
+    {
+      "matches": [
+        "https://www.linkedin.com/*"
+      ],
+      "js": [
         "src/main_panel.jsx"
       ],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://*.lever.co/*",
+        "https://lever.co/*"
+      ],
+      "js": [
+        "src/lever_apply.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true
     }
   ],
   "web_accessible_resources": [
