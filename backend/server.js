@@ -18,6 +18,12 @@ fastify.register(require('@fastify/cors'), {
     methods: ['GET', 'POST', 'PUT', 'DELETE']
 });
 
+// AutoReach — Outreach analytics & funnel tracking routes (PRD §6)
+fastify.register(require('./routes/outreach'), {
+    supabase,
+    appBaseUrl: process.env.APP_BASE_URL || ''
+});
+
 // Routes
 fastify.get('/', async (request, reply) => {
     return { status: 'ok', message: 'LinkedIn Intern Helper Backend Running (Supabase)' };
